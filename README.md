@@ -28,4 +28,8 @@ To create an installer:
 npm run tauri build
 ```
 
-The initial repository establishes the desktop shell and model-management interface. The `runtime_status` Tauri command is the native boundary where the bundled inference engine and GGUF model import pipeline will be connected.
+## Model library
+
+Use **Models → Add model** to choose a GGUF file. ATLAS copies the file into its own application-data directory and keeps the library registry there, so it does not depend on the original file location.
+
+ATLAS runs compatible imported models through its embedded llama.cpp engine. The initial engine is CPU-first, uses a 2,048-token context window, and generates up to 512 response tokens. GPU acceleration and downloadable models are future enhancements.

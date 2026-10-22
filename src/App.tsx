@@ -1,7 +1,21 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import "./App.css";
 
 type View = "chat" | "search" | "models";
+
+type LocalModel = {
+  id: string;
+  fileName: string;
+  sizeBytes: number;
+  importedAt: number;
+};
+
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
 
 const conversations = [
   { title: "Getting started with ATLAS", time: "Now" },
@@ -27,27 +41,90 @@ function Icon({ name }: { name: string }) {
   );
 }
 
+function formatFileSize(sizeBytes: number) {
+  return `${(sizeBytes / 1024 ** 3).toFixed(1)} GB`;
+}
+
+function isDesktopApp() {
+  return "__TAURI_INTERNALS__" in window;
+}
+
 function App() {
   const [view, setView] = useState<View>("chat");
   const [prompt, setPrompt] = useState("");
-  const [hasModel, setHasModel] = useState(false);
+  const [models, setModels] = useState<LocalModel[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [notice, setNotice] = useState("");
+  const [isImporting, setIsImporting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const hasModel = models.length > 0;
 
-  function submitPrompt(event: FormEvent<HTMLFormElement>) {
+  const loadModels = useCallback(async () => {
+    if (!isDesktopApp()) return;
+
+    try {
+      setModels(await invoke<LocalModel[]>("list_models"));
+    } catch (error) {
+      setNotice(`Could not load the local model library: ${String(error)}`);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadModels();
+  }, [loadModels]);
+
+  async function submitPrompt(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!prompt.trim()) return;
+    const message = prompt.trim();
+    if (!message || isGenerating) return;
+    if (!hasModel) {
+      setNotice("Add a GGUF model from the Models tab before starting a local conversation.");
+      return;
+    }
+    if (!isDesktopApp()) {
+      setNotice("Open ATLAS as a desktop app to run a local model.");
+      return;
+    }
 
-    setNotice(
-      hasModel
-        ? "The built-in ATLAS runtime will process this message once inference is connected."
-        : "Add a GGUF model from the Models tab before starting a local conversation.",
-    );
+    setMessages((currentMessages) => [...currentMessages, { role: "user", content: message }]);
     setPrompt("");
+    setNotice("");
+    setIsGenerating(true);
+    try {
+      const response = await invoke<string>("generate_response", {
+        modelId: models[0].id,
+        prompt: message,
+      });
+      setMessages((currentMessages) => [...currentMessages, { role: "assistant", content: response }]);
+    } catch (error) {
+      setNotice(`The local model could not answer: ${String(error)}`);
+    } finally {
+      setIsGenerating(false);
+    }
   }
 
-  function addModel() {
-    setHasModel(true);
-    setNotice("A model slot was added. Model-file import will be connected to the built-in ATLAS runtime.");
+  async function addModel() {
+    if (!isDesktopApp()) {
+      setNotice("Open ATLAS as a desktop app to import a GGUF model.");
+      return;
+    }
+
+    try {
+      const selectedPath = await open({
+        multiple: false,
+        filters: [{ name: "GGUF model", extensions: ["gguf"] }],
+      });
+      if (!selectedPath || Array.isArray(selectedPath)) return;
+
+      setIsImporting(true);
+      const importedModel = await invoke<LocalModel>("import_model", { sourcePath: selectedPath });
+      setModels((currentModels) => [...currentModels, importedModel]);
+      setNotice(`${importedModel.fileName} is now stored in the ATLAS model library.`);
+    } catch (error) {
+      setNotice(`Could not import the model: ${String(error)}`);
+    } finally {
+      setIsImporting(false);
+    }
   }
 
   return (
@@ -93,25 +170,37 @@ function App() {
           <section className="chat-view">
             <header className="topbar">
               <button className="model-picker" onClick={() => setView("models")}>
-                {hasModel ? "ATLAS Local Model" : "Choose a model"} <span>⌄</span>
+                {hasModel ? models[0].fileName : "Choose a model"} <span>⌄</span>
               </button>
               <div className="runtime-status"><span /> Local only</div>
             </header>
 
-            <div className="empty-chat">
-              <div className="hero-mark"><Icon name="spark" /></div>
-              <h1>How can I help you today?</h1>
-              <p>Private, local AI. Your chats and models stay on this device.</p>
-              <div className="suggestions">
-                <button onClick={() => setPrompt("Help me plan a project")}>Help me plan a project <Icon name="arrow" /></button>
-                <button onClick={() => setPrompt("Explain a complex topic simply")}>Explain a complex topic simply <Icon name="arrow" /></button>
-                <button onClick={() => setView("models")}>Set up a local model <Icon name="arrow" /></button>
+            {messages.length === 0 ? (
+              <div className="empty-chat">
+                <div className="hero-mark"><Icon name="spark" /></div>
+                <h1>How can I help you today?</h1>
+                <p>Private, local AI. Your chats and models stay on this device.</p>
+                <div className="suggestions">
+                  <button onClick={() => setPrompt("Help me plan a project")}>Help me plan a project <Icon name="arrow" /></button>
+                  <button onClick={() => setPrompt("Explain a complex topic simply")}>Explain a complex topic simply <Icon name="arrow" /></button>
+                  <button onClick={() => setView("models")}>Set up a local model <Icon name="arrow" /></button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="message-list">
+                {messages.map((message, index) => (
+                  <article className={`message ${message.role}`} key={`${message.role}-${index}`}>
+                    <span className="message-label">{message.role === "user" ? "You" : "ATLAS"}</span>
+                    <p>{message.content}</p>
+                  </article>
+                ))}
+                {isGenerating && <article className="message assistant"><span className="message-label">ATLAS</span><p className="thinking">Thinking locally...</p></article>}
+              </div>
+            )}
 
             <form className="composer" onSubmit={submitPrompt}>
               <textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Message ATLAS..." rows={1} />
-              <button type="submit" aria-label="Send message"><Icon name="arrow" /></button>
+              <button type="submit" aria-label="Send message" disabled={isGenerating}><Icon name="arrow" /></button>
               {notice && <p className="notice">{notice}</p>}
               <span>ATLAS can make mistakes. Check important information.</span>
             </form>
@@ -131,26 +220,34 @@ function App() {
           <section className="models-view">
             <header className="models-header">
               <div><div className="section-label">ATLAS ENGINE</div><h1>Models</h1><p>Manage the models used by this device. Nothing runs outside ATLAS.</p></div>
-              <button className="accent-button" onClick={addModel}><Icon name="plus" /> Add model</button>
+              <button className="accent-button" onClick={() => void addModel()} disabled={isImporting}>
+                <Icon name="plus" /> {isImporting ? "Importing..." : "Add model"}
+              </button>
             </header>
             <div className="engine-card">
               <div className="engine-icon"><Icon name="models" /></div>
-              <div><strong>Built-in inference engine</strong><p>ATLAS will bundle and manage its own local runtime and GGUF models.</p></div>
-              <span className="engine-badge">Ready for setup</span>
+              <div><strong>Built-in inference engine</strong><p>ATLAS manages imported GGUF files in its private local library.</p></div>
+              <span className="engine-badge">{hasModel ? "Model ready" : "Needs a model"}</span>
             </div>
-            <div className="library-heading"><h2>Model library</h2><span>{hasModel ? "1 model" : "No models yet"}</span></div>
+            <div className="library-heading"><h2>Model library</h2><span>{hasModel ? `${models.length} ${models.length === 1 ? "model" : "models"}` : "No models yet"}</span></div>
             {hasModel ? (
-              <div className="model-card">
-                <div className="model-avatar">A</div>
-                <div><strong>ATLAS local model</strong><p>Awaiting model file import</p></div>
-                <button className="text-button">Configure</button>
+              <div className="model-list">
+                {models.map((model) => (
+                  <div className="model-card" key={model.id}>
+                    <div className="model-avatar">A</div>
+                    <div><strong>{model.fileName}</strong><p>{formatFileSize(model.sizeBytes)} · Stored in ATLAS</p></div>
+                    <span className="text-button">Imported</span>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="empty-library">
                 <div className="library-icon"><Icon name="models" /></div>
                 <h2>Your model library is empty</h2>
                 <p>Add a compatible GGUF model to chat completely offline.</p>
-                <button className="accent-button" onClick={addModel}><Icon name="plus" /> Add your first model</button>
+                <button className="accent-button" onClick={() => void addModel()} disabled={isImporting}>
+                  <Icon name="plus" /> {isImporting ? "Importing..." : "Add your first model"}
+                </button>
               </div>
             )}
           </section>
