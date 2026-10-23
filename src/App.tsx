@@ -33,6 +33,10 @@ type SearchResult = {
   updatedAt: number;
 };
 
+type AppSettings = {
+  defaultModelId: string | null;
+};
+
 function Icon({ name }: { name: string }) {
   const paths: Record<string, string> = {
     search: "m20 20-4.3-4.3m1.3-5.2a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z",
@@ -73,16 +77,21 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [models, setModels] = useState<LocalModel[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [settings, setSettings] = useState<AppSettings>({ defaultModelId: null });
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isClearingConversations, setIsClearingConversations] = useState(false);
   const [deletingConversationId, setDeletingConversationId] = useState<string | null>(null);
   const [deletingModelId, setDeletingModelId] = useState<string | null>(null);
 
   const hasModel = models.length > 0;
   const activeConversation = conversations.find((conversation) => conversation.id === activeConversationId) ?? null;
-  const selectedModel = models.find((model) => model.id === activeConversation?.modelId) ?? models[0] ?? null;
+  const selectedModel = models.find((model) => model.id === activeConversation?.modelId)
+    ?? models.find((model) => model.id === settings.defaultModelId)
+    ?? models[0]
+    ?? null;
 
   const searchResults = useMemo<SearchResult[]>(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -139,10 +148,21 @@ function App() {
     }
   }, []);
 
+  const loadSettings = useCallback(async () => {
+    if (!isDesktopApp()) return;
+
+    try {
+      setSettings(await invoke<AppSettings>("get_settings"));
+    } catch (error) {
+      setNotice(`Could not load app settings: ${String(error)}`);
+    }
+  }, []);
+
   useEffect(() => {
     void loadModels();
     void loadConversations();
-  }, [loadConversations, loadModels]);
+    void loadSettings();
+  }, [loadConversations, loadModels, loadSettings]);
 
   async function upsertConversation(conversation: Conversation) {
     const savedConversation = await invoke<Conversation>("save_conversation", { conversation });
@@ -196,6 +216,23 @@ function App() {
     }
   }
 
+  async function clearConversations() {
+    if (!isDesktopApp()) return;
+    if (conversations.length === 0) return;
+
+    try {
+      setIsClearingConversations(true);
+      await invoke("clear_conversations");
+      setConversations([]);
+      setActiveConversationId(null);
+      setNotice("All conversations were removed from local storage.");
+    } catch (error) {
+      setNotice(`Could not clear conversations: ${String(error)}`);
+    } finally {
+      setIsClearingConversations(false);
+    }
+  }
+
   async function selectModelForActiveConversation(modelId: string) {
     if (!activeConversation) {
       setNotice("Start a conversation before choosing a model.");
@@ -212,6 +249,23 @@ function App() {
       setNotice("");
     } catch (error) {
       setNotice(`Could not set the model for this conversation: ${String(error)}`);
+    }
+  }
+
+  async function setDefaultModel(modelId: string | null) {
+    if (!isDesktopApp()) return;
+
+    try {
+      const nextSettings = await invoke<AppSettings>("set_default_model", { modelId });
+      setSettings(nextSettings);
+      if (modelId) {
+        const model = models.find((candidate) => candidate.id === modelId);
+        setNotice(`${model?.fileName ?? "Model"} is now your default model.`);
+      } else {
+        setNotice("Default model cleared.");
+      }
+    } catch (error) {
+      setNotice(`Could not update default model: ${String(error)}`);
     }
   }
 
@@ -302,7 +356,7 @@ function App() {
     try {
       setDeletingModelId(modelId);
       await invoke("delete_model", { modelId });
-      await Promise.all([loadModels(), loadConversations()]);
+      await Promise.all([loadModels(), loadConversations(), loadSettings()]);
       setNotice("Model removed from the ATLAS local library.");
     } catch (error) {
       setNotice(`Could not remove the model: ${String(error)}`);
@@ -451,6 +505,15 @@ function App() {
             <div className="section-label">LOCAL SEARCH</div>
             <h1>Search saved chats</h1>
             <p>Everything stays on-device. Search runs only against your local ATLAS conversation history.</p>
+            <div className="search-actions">
+              <button
+                className="danger-ghost"
+                disabled={isClearingConversations || conversations.length === 0}
+                onClick={() => void clearConversations()}
+              >
+                {isClearingConversations ? "Clearing..." : "Clear all chats"}
+              </button>
+            </div>
             <div className="search-box">
               <Icon name="search" />
               <input
@@ -516,6 +579,9 @@ function App() {
                       <button className="text-button" onClick={() => void selectModelForActiveConversation(model.id)}>
                         Use
                       </button>
+                      <button className="text-button" onClick={() => void setDefaultModel(model.id)}>
+                        {settings.defaultModelId === model.id ? "Default" : "Set default"}
+                      </button>
                       <button
                         className="danger-ghost"
                         disabled={deletingModelId === model.id}
@@ -536,6 +602,13 @@ function App() {
                   <Icon name="plus" /> {isImporting ? "Importing..." : "Add your first model"}
                 </button>
               </div>
+            )}
+
+            {hasModel && settings.defaultModelId && (
+              <p className="default-model-note">
+                Default model: {models.find((model) => model.id === settings.defaultModelId)?.fileName ?? "Unavailable"}
+                <button className="text-button" onClick={() => void setDefaultModel(null)}>Clear</button>
+              </p>
             )}
           </section>
         )}

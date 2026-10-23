@@ -41,6 +41,12 @@ struct Conversation {
     updated_at: u64,
 }
 
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AppSettings {
+    default_model_id: Option<String>,
+}
+
 fn now_timestamp_seconds() -> Result<u64, String> {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -80,6 +86,10 @@ fn models_registry_path(app: &AppHandle) -> Result<PathBuf, String> {
 
 fn conversations_registry_path(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(app_data_directory(app)?.join("conversations.json"))
+}
+
+fn settings_registry_path(app: &AppHandle) -> Result<PathBuf, String> {
+    Ok(app_data_directory(app)?.join("settings.json"))
 }
 
 fn replace_json_file(path: &Path, contents: &str, label: &str) -> Result<(), String> {
@@ -129,6 +139,26 @@ fn save_conversations(app: &AppHandle, conversations: &[Conversation]) -> Result
     let serialized = serde_json::to_string_pretty(conversations)
         .map_err(|error| format!("Could not serialize local conversations: {error}"))?;
     replace_json_file(&path, &serialized, "local conversations")
+}
+
+fn load_settings(app: &AppHandle) -> Result<AppSettings, String> {
+    let path = settings_registry_path(app)?;
+    if !path.exists() {
+        return Ok(AppSettings {
+            default_model_id: None,
+        });
+    }
+
+    let contents = fs::read_to_string(&path)
+        .map_err(|error| format!("Could not read ATLAS settings: {error}"))?;
+    serde_json::from_str(&contents).map_err(|error| format!("ATLAS settings are invalid: {error}"))
+}
+
+fn save_settings(app: &AppHandle, settings: &AppSettings) -> Result<(), String> {
+    let path = settings_registry_path(app)?;
+    let serialized = serde_json::to_string_pretty(settings)
+        .map_err(|error| format!("Could not serialize ATLAS settings: {error}"))?;
+    replace_json_file(&path, &serialized, "ATLAS settings")
 }
 
 fn import_model_file(app: &AppHandle, source_path: &str) -> Result<LocalModel, String> {
@@ -302,6 +332,12 @@ fn delete_model(app: AppHandle, model_id: String) -> Result<(), String> {
         save_conversations(&app, &conversations)?;
     }
 
+    let mut settings = load_settings(&app)?;
+    if settings.default_model_id.as_deref() == Some(model_id.as_str()) {
+        settings.default_model_id = None;
+        save_settings(&app, &settings)?;
+    }
+
     Ok(())
 }
 
@@ -315,11 +351,20 @@ fn list_conversations(app: AppHandle) -> Result<Vec<Conversation>, String> {
 #[tauri::command]
 fn create_conversation(app: AppHandle) -> Result<Conversation, String> {
     let created_at = now_timestamp_seconds()?;
+    let settings = load_settings(&app)?;
+    let models = load_models(&app)?;
+    let model_id = settings.default_model_id.and_then(|default_model_id| {
+        models
+            .iter()
+            .any(|model| model.id == default_model_id)
+            .then_some(default_model_id)
+    });
+
     let conversation = Conversation {
         id: format!("chat-{}", now_timestamp_nanos()?),
         title: "New chat".to_string(),
         messages: Vec::new(),
-        model_id: None,
+        model_id,
         created_at,
         updated_at: created_at,
     };
@@ -369,6 +414,34 @@ fn delete_conversation(app: AppHandle, conversation_id: String) -> Result<(), St
 }
 
 #[tauri::command]
+fn clear_conversations(app: AppHandle) -> Result<(), String> {
+    save_conversations(&app, &[])
+}
+
+#[tauri::command]
+fn get_settings(app: AppHandle) -> Result<AppSettings, String> {
+    load_settings(&app)
+}
+
+#[tauri::command]
+fn set_default_model(app: AppHandle, model_id: Option<String>) -> Result<AppSettings, String> {
+    if let Some(model_id_value) = model_id.as_deref() {
+        let models = load_models(&app)?;
+        if !models.iter().any(|model| model.id == model_id_value) {
+            return Err(
+                "The selected default model was not found in the local library.".to_string(),
+            );
+        }
+    }
+
+    let settings = AppSettings {
+        default_model_id: model_id,
+    };
+    save_settings(&app, &settings)?;
+    Ok(settings)
+}
+
+#[tauri::command]
 async fn import_model(app: AppHandle, source_path: String) -> Result<LocalModel, String> {
     tauri::async_runtime::spawn_blocking(move || import_model_file(&app, &source_path))
         .await
@@ -406,12 +479,15 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             create_conversation,
+            clear_conversations,
             delete_conversation,
             delete_model,
+            get_settings,
             generate_response,
             import_model,
             list_conversations,
             list_models,
+            set_default_model,
             save_conversation
         ])
         .run(tauri::generate_context!())

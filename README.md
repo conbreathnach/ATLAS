@@ -39,6 +39,6 @@ ATLAS runs compatible imported models through its embedded llama.cpp engine. The
 - ChatGPT-style local desktop chat UX with multiple conversations
 - Persistent local conversation history (create, switch, delete)
 - Local conversation search by title and message text
-- Per-conversation model assignment
+- Per-conversation model assignment plus a persistent default model setting
 - GGUF model import and local storage management (add/remove)
 - Embedded llama.cpp runtime via Rust (`llama-cpp-2`) with no external model server dependency
