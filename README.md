@@ -1,44 +1,56 @@
 # ATLAS
 
-ATLAS is a private, local-first AI desktop application. It uses a ChatGPT-inspired chat experience, an offline workspace search area, and a dedicated **Models** tab for managing the built-in inference engine and local GGUF models.
+A private, local-first AI desktop app for Windows. ATLAS runs open-weight models entirely on your machine — no accounts, no cloud, no separate server process. One installer, one app.
 
-## Principles
+![stack](https://img.shields.io/badge/stack-Tauri%202%20%C2%B7%20React%2019%20%C2%B7%20llama.cpp-c8f759)
 
-- **One desktop app:** the UI, local model management, and eventual inference runtime belong to ATLAS rather than requiring a separately running model service.
-- **Private by default:** chats, model files, and future indexes remain on the device.
-- **Portable model format:** the model library is designed around GGUF files.
+## Features
+
+- **Streaming chat** — token-by-token responses rendered live, with a stop button
+- **Embedded inference** — llama.cpp runs inside the app via Rust bindings; no Ollama, LM Studio, or Open WebUI required
+- **Proper chat templates** — each model's own GGUF chat template is applied, with a ChatML fallback
+- **Markdown rendering** — headings, lists, tables, and syntax-highlighted code blocks with copy buttons
+- **Model library** — import GGUF files, set a default model, remove models; ATLAS manages its own storage
+- **Persistent conversations** — create, rename, delete, and search chats; history survives restarts
+- **Per-conversation tuning** — system prompt, temperature, top-p, max tokens, context size
+- **Keyboard shortcuts** — `Ctrl+N` new chat, `Ctrl+K` search, `Ctrl+M` models
+- **Self-healing storage** — atomic writes; corrupted data files are quarantined instead of crashing
+
+## Architecture
+
+```
+ATLAS (single Windows app)
+├── React 19 + TypeScript frontend
+│   ├── components/   Sidebar, ChatView, Composer, Markdown, ModelsView, SearchView…
+│   ├── hooks/        useConversations, useModels, useSettings, useToast
+│   └── api.ts        typed bridge to native commands
+└── Rust + Tauri native core
+    ├── engine.rs     llama.cpp: cached model, chat templates, token streaming, cancellation
+    ├── chats.rs      conversation persistence and validation
+    ├── models.rs     GGUF library management
+    ├── settings.rs   app settings (default model)
+    └── storage.rs    atomic JSON + corruption recovery
+```
+
+Data lives in the ATLAS application-data directory (`models\`, `models.json`, `conversations.json`, `settings.json`). Nothing leaves the device.
 
 ## Development
 
-Install Node.js dependencies:
+Prerequisites: Node.js, [Rust](https://www.rust-lang.org/tools/install), and LLVM (for `libclang`, used to build the llama.cpp bindings).
 
 ```powershell
 npm install
+npm run tauri dev        # run the app in development
+cargo test --manifest-path src-tauri\Cargo.toml   # native unit tests
+npm run tauri build      # produce the Windows installer
 ```
 
-ATLAS packages as a Windows application through Tauri, which requires the Rust toolchain. After installing [Rust](https://www.rust-lang.org/tools/install), launch the desktop app:
+The installer is written to the Cargo target directory under `release\bundle\nsis\` (`ATLAS_<version>_x64-setup.exe`).
 
-```powershell
-npm run tauri dev
-```
+## Using a model
 
-To create an installer:
+1. Download a GGUF model (e.g. a small instruct model such as Qwen, Llama, or Mistral from Hugging Face).
+2. In ATLAS: **Models → Add model** and select the file.
+3. Click **New chat** and start typing.
 
-```powershell
-npm run tauri build
-```
-
-## Model library
-
-Use **Models → Add model** to choose a GGUF file. ATLAS copies the file into its own application-data directory and keeps the library registry there, so it does not depend on the original file location.
-
-ATLAS runs compatible imported models through its embedded llama.cpp engine. The initial engine is CPU-first, uses a 2,048-token context window, and generates up to 512 response tokens. Local chat history is stored with the ATLAS application data. GPU acceleration and downloadable models are future enhancements.
-
-## Current capabilities
-
-- ChatGPT-style local desktop chat UX with multiple conversations
-- Persistent local conversation history (create, switch, delete)
-- Local conversation search by title and message text
-- Per-conversation model assignment plus a persistent default model setting
-- GGUF model import and local storage management (add/remove)
-- Embedded llama.cpp runtime via Rust (`llama-cpp-2`) with no external model server dependency
+Smaller quantized models (Q4_K_M, ~4B parameters or fewer) run best on CPU.
