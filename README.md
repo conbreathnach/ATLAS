@@ -32,4 +32,13 @@ npm run tauri build
 
 Use **Models → Add model** to choose a GGUF file. ATLAS copies the file into its own application-data directory and keeps the library registry there, so it does not depend on the original file location.
 
-ATLAS runs compatible imported models through its embedded llama.cpp engine. The initial engine is CPU-first, uses a 2,048-token context window, and generates up to 512 response tokens. GPU acceleration and downloadable models are future enhancements.
+ATLAS runs compatible imported models through its embedded llama.cpp engine. The initial engine is CPU-first, uses a 2,048-token context window, and generates up to 512 response tokens. Local chat history is stored with the ATLAS application data. GPU acceleration and downloadable models are future enhancements.
+
+## Current capabilities
+
+- ChatGPT-style local desktop chat UX with multiple conversations
+- Persistent local conversation history (create, switch, delete)
+- Local conversation search by title and message text
+- Per-conversation model assignment
+- GGUF model import and local storage management (add/remove)
+- Embedded llama.cpp runtime via Rust (`llama-cpp-2`) with no external model server dependency
