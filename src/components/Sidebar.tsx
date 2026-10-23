@@ -63,6 +63,12 @@ export function Sidebar({
           <Icon name="models" size={15} /> Models
           {modelCount > 0 && <span className="nav-count">{modelCount}</span>}
         </button>
+        <button
+          className={`side-action ${view === "settings" ? "active" : ""}`}
+          onClick={() => onNavigate("settings")}
+        >
+          <Icon name="settings" size={15} /> Settings
+        </button>
       </div>
 
       <div className="history">

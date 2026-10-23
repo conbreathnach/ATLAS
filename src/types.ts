@@ -1,4 +1,4 @@
-export type View = "chat" | "search" | "models";
+export type View = "chat" | "search" | "models" | "settings";
 
 export interface LocalModel {
   id: string;
@@ -31,8 +31,14 @@ export interface Conversation {
   settings: GenerationSettings;
 }
 
+export type Theme = "dark" | "light" | "black";
+export type Accent = "lime" | "blue" | "violet" | "amber";
+
 export interface AppSettings {
   defaultModelId: string | null;
+  theme: Theme;
+  accent: Accent;
+  defaultGeneration: GenerationSettings;
 }
 
 export interface TokenPayload {

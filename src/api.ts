@@ -49,6 +49,8 @@ export const api = {
   getSettings: () => invoke<AppSettings>("get_settings"),
   setDefaultModel: (modelId: string | null) =>
     invoke<AppSettings>("set_default_model", { modelId }),
+  updateAppSettings: (settings: AppSettings) =>
+    invoke<AppSettings>("update_app_settings", { settings }),
 };
 
 export function onToken(handler: (payload: TokenPayload) => void): Promise<UnlistenFn> {

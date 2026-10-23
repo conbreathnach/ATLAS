@@ -2,6 +2,7 @@ import { isValidElement, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
+import { rebalanceFences } from "../lib/markdown";
 import { Icon } from "./Icon";
 
 function extractText(node: ReactNode): string {
@@ -41,6 +42,9 @@ function CodeBlock({ children }: { children?: ReactNode }) {
 }
 
 export function Markdown({ children }: { children: string }) {
+  // Models often nest same-length fences (templates with examples);
+  // rebalance so the outer block survives instead of scrambling.
+  const repaired = rebalanceFences(children);
   return (
     <div className="markdown">
       <ReactMarkdown
@@ -67,7 +71,7 @@ export function Markdown({ children }: { children: string }) {
           ),
         }}
       >
-        {children}
+        {repaired}
       </ReactMarkdown>
     </div>
   );

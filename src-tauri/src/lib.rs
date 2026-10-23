@@ -34,6 +34,7 @@ pub fn run() {
             models::list_models,
             settings::get_settings,
             settings::set_default_model,
+            settings::update_app_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

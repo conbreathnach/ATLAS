@@ -4,6 +4,7 @@ import { api, onToken } from "./api";
 import { ChatView } from "./components/ChatView";
 import { ModelsView } from "./components/ModelsView";
 import { SearchView } from "./components/SearchView";
+import { SettingsView } from "./components/SettingsView";
 import { Sidebar } from "./components/Sidebar";
 import { ToastStack } from "./components/Toast";
 import { useConversations } from "./hooks/useConversations";
@@ -39,7 +40,9 @@ export default function App() {
     clearAll,
     rename,
   } = useConversations(notify);
-  const { settings, setDefaultModel, refresh: refreshSettings } = useSettings(notify);
+  const { settings, update: updateAppSettings, setDefaultModel, refresh: refreshSettings } =
+    useSettings(notify);
+  const defaultModelId = settings?.defaultModelId ?? null;
 
   const stoppedByUser = useRef(false);
   const creatingChat = useRef(false);
@@ -92,7 +95,7 @@ export default function App() {
     async (conversation: Conversation) => {
       const model =
         models.find((candidate) => candidate.id === conversation.modelId) ??
-        models.find((candidate) => candidate.id === settings.defaultModelId) ??
+        models.find((candidate) => candidate.id === defaultModelId) ??
         models[0];
       if (!model) {
         notify("Add a GGUF model in the Models tab first.", "error");
@@ -128,7 +131,7 @@ export default function App() {
         setStream(null);
       }
     },
-    [models, notify, settings.defaultModelId, upsert],
+    [models, notify, defaultModelId, upsert],
   );
 
   const send = useCallback(
@@ -140,7 +143,7 @@ export default function App() {
       }
       const modelId =
         conversation.modelId ??
-        (models.some((m) => m.id === settings.defaultModelId) ? settings.defaultModelId : null) ??
+        (models.some((m) => m.id === defaultModelId) ? defaultModelId : null) ??
         models[0]?.id ??
         null;
       try {
@@ -158,7 +161,7 @@ export default function App() {
         notify(`Could not send the message: ${error}`, "error");
       }
     },
-    [active, create, models, notify, runGeneration, settings.defaultModelId, upsert],
+    [active, create, models, notify, runGeneration, defaultModelId, upsert],
   );
 
   const regenerate = useCallback(async () => {
@@ -259,6 +262,9 @@ export default function App() {
       } else if (key === "m") {
         event.preventDefault();
         setView("models");
+      } else if (key === ",") {
+        event.preventDefault();
+        setView("settings");
       }
     };
     window.addEventListener("keydown", handler);
@@ -289,7 +295,7 @@ export default function App() {
           <ChatView
             conversation={active}
             models={models}
-            defaultModelId={settings.defaultModelId}
+            defaultModelId={defaultModelId}
             streamingText={streamingHere ? stream.text : null}
             streaming={streamingHere}
             onSend={(text) => void send(text)}
@@ -310,10 +316,18 @@ export default function App() {
             onClearAll={() => void clearConversations()}
           />
         )}
+        {view === "settings" && settings && (
+          <SettingsView
+            settings={settings}
+            models={models}
+            onUpdate={(next) => void updateAppSettings(next)}
+            onClearChats={() => void clearConversations()}
+          />
+        )}
         {view === "models" && (
           <ModelsView
             models={models}
-            defaultModelId={settings.defaultModelId}
+            defaultModelId={defaultModelId}
             importing={importing}
             deletingId={deletingId}
             onImport={() => void importModel()}

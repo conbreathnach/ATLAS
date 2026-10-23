@@ -13,7 +13,11 @@ A private, local-first AI desktop app for Windows. ATLAS runs open-weight models
 - **Model library** — import GGUF files, set a default model, remove models; ATLAS manages its own storage
 - **Persistent conversations** — create, rename, delete, and search chats; history survives restarts
 - **Per-conversation tuning** — system prompt, temperature, top-p, max tokens, context size
-- **Keyboard shortcuts** — `Ctrl+N` new chat, `Ctrl+K` search, `Ctrl+M` models
+- **Keyboard shortcuts** — `Ctrl+N` new chat, `Ctrl+K` search, `Ctrl+M` models, `Ctrl+,` settings
+- **Themes** — Dark, Black, and Light themes with four accent colors, applied instantly
+- **App-wide LLM defaults** — system prompt, sampling, and context defaults for new chats, plus per-conversation overrides
+- **Reasoning-block rendering** — `<think>` output collapses into an expandable "Thought for a moment" block
+- **Fence repair** — nested same-length code fences (common in model templates) are rebalanced before rendering
 - **Self-healing storage** — atomic writes; corrupted data files are quarantined instead of crashing
 
 ## Architecture

@@ -69,6 +69,93 @@ mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; 
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
+/* ============ Theme variants ============ */
+
+:root[data-theme="black"] {
+  --bg-sidebar: #0a0a07;
+  --bg-app: #000000;
+  --bg-elevated: #131310;
+  --bg-input: #131310;
+  --bg-hover: rgba(255, 255, 255, 0.07);
+  --bg-active: rgba(255, 255, 255, 0.11);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+}
+
+:root[data-theme="light"] {
+  --bg-sidebar: #f0f0ea;
+  --bg-app: #fafaf7;
+  --bg-elevated: #ffffff;
+  --bg-input: #ffffff;
+  --bg-hover: rgba(0, 0, 0, 0.045);
+  --bg-active: rgba(0, 0, 0, 0.075);
+  --border: rgba(0, 0, 0, 0.09);
+  --border-strong: rgba(0, 0, 0, 0.16);
+  --text: #1d1f19;
+  --text-2: #5a5f53;
+  --text-3: #878c7d;
+  --accent-dim: rgba(122, 156, 20, 0.12);
+  color-scheme: light;
+}
+
+/* Light theme uses a deeper lime for readable contrast on white. */
+:root[data-theme="light"][data-accent="lime"] {
+  --accent: #6f9a12;
+  --accent-hover: #5e8510;
+  --accent-ink: #ffffff;
+  --accent-dim: rgba(111, 154, 18, 0.13);
+}
+:root[data-accent="blue"] {
+  --accent: #7ab8ff;
+  --accent-hover: #94c6ff;
+  --accent-ink: #0d1b2c;
+  --accent-dim: rgba(122, 184, 255, 0.13);
+}
+:root[data-accent="violet"] {
+  --accent: #c9a7ff;
+  --accent-hover: #d7bcff;
+  --accent-ink: #1e1230;
+  --accent-dim: rgba(201, 167, 255, 0.13);
+}
+:root[data-accent="amber"] {
+  --accent: #ffcf6e;
+  --accent-hover: #ffda8f;
+  --accent-ink: #2b1e06;
+  --accent-dim: rgba(255, 207, 110, 0.14);
+}
+:root[data-theme="light"][data-accent="blue"] {
+  --accent: #1f6fe0;
+  --accent-hover: #1a63c8;
+  --accent-ink: #ffffff;
+  --accent-dim: rgba(31, 111, 224, 0.12);
+}
+:root[data-theme="light"][data-accent="violet"] {
+  --accent: #7c3aed;
+  --accent-hover: #6d31d8;
+  --accent-ink: #ffffff;
+  --accent-dim: rgba(124, 58, 237, 0.11);
+}
+:root[data-theme="light"][data-accent="amber"] {
+  --accent: #b45309;
+  --accent-hover: #9a4708;
+  --accent-ink: #ffffff;
+  --accent-dim: rgba(180, 83, 9, 0.12);
+}
+
+/* Light-theme adjustments where dark-only choices were baked in. */
+:root[data-theme="light"] .code-block { background: #1d1e1a; }
+:root[data-theme="light"] .new-chat kbd,
+:root[data-theme="light"] .brand-mark { border-color: rgba(111, 154, 18, 0.3); }
+:root[data-theme="light"] .composer { box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08); }
+:root[data-theme="light"] .toast { box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18); }
+:root[data-theme="light"] .chat-settings { box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18); }
+:root[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.14); }
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.24); }
+:root[data-theme="light"] .model-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235a5f53' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+:root[data-theme="light"] .model-select option { background: #ffffff; color: #1d1f19; }
+
 .app { display: flex; height: 100vh; }
 
 /* ============ Sidebar ============ */
@@ -576,6 +663,70 @@ mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; 
   overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 .search-danger { margin-top: 38px; padding-top: 18px; border-top: 1px solid var(--border); }
+
+/* ============ Settings view ============ */
+
+.settings-view {
+  flex: 1; min-height: 0;
+  width: min(780px, calc(100% - 64px));
+  margin: 0 auto; padding: 52px 0 60px;
+  overflow-y: auto;
+}
+.settings-view h1 { font-size: 25px; font-weight: 800; margin: 6px 0 26px; }
+.settings-section {
+  padding: 22px;
+  margin-bottom: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+}
+.settings-section h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.settings-hint { font-size: 12px; color: var(--text-3); margin-bottom: 18px; }
+.settings-note { font-size: 11.5px; color: var(--text-3); margin-top: 4px; }
+.settings-section .field textarea, .settings-section .field input[type="number"], .settings-section .field select {
+  background: var(--bg-input);
+}
+
+.theme-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.theme-card {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 12px; text-align: left;
+  background: var(--bg-input); border: 1px solid var(--border); border-radius: 13px;
+  transition: all 0.14s ease;
+}
+.theme-card:hover { border-color: var(--border-strong); }
+.theme-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.theme-card strong { font-size: 13px; margin-top: 9px; }
+.theme-card small { font-size: 11px; color: var(--text-3); }
+.theme-preview {
+  display: flex; height: 56px; overflow: hidden;
+  border: 1px solid var(--border); border-radius: 8px;
+}
+.theme-dark .theme-preview { background: #1f201a; }
+.theme-black .theme-preview { background: #000; }
+.theme-light .theme-preview { background: #fafaf7; }
+.preview-side { width: 26%; }
+.theme-dark .preview-side { background: #171713; }
+.theme-black .preview-side { background: #0a0a07; }
+.theme-light .preview-side { background: #f0f0ea; border-right: 1px solid rgba(0,0,0,0.07); }
+.preview-main { flex: 1; display: flex; flex-direction: column; gap: 5px; padding: 9px; }
+.preview-bubble { align-self: flex-end; width: 46%; height: 9px; border-radius: 99px; }
+.theme-dark .preview-bubble { background: #2a2b24; }
+.theme-black .preview-bubble { background: #131310; }
+.theme-light .preview-bubble { background: #e8e8e1; }
+.preview-line { width: 72%; height: 5px; border-radius: 99px; }
+.preview-line.short { width: 48%; }
+.theme-dark .preview-line { background: rgba(255,255,255,0.14); }
+.theme-black .preview-line { background: rgba(255,255,255,0.16); }
+.theme-light .preview-line { background: rgba(0,0,0,0.14); }
+
+.accent-picker { display: flex; gap: 10px; margin-top: 16px; }
+.accent-swatch {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 2px solid transparent;
+  transition: all 0.14s ease;
+}
+.accent-swatch:hover { transform: scale(1.1); }
+.accent-swatch.active { border-color: var(--text); box-shadow: 0 0 0 3px var(--bg-app), 0 0 0 5px var(--accent); }
 
 /* ============ Toasts ============ */
 

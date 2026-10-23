@@ -151,6 +151,9 @@ pub fn list_conversations(app: AppHandle) -> AtlasResult<Vec<Conversation>> {
 pub fn create_conversation(app: AppHandle) -> AtlasResult<Conversation> {
     let _guard = storage::lock_store();
     let now = storage::now_seconds()?;
+    let generation_defaults = crate::settings::load_settings(&app)
+        .map(|settings| settings.default_generation)
+        .unwrap_or_default();
     let conversation = Conversation {
         id: storage::unique_id("chat")?,
         title: "New chat".to_string(),
@@ -158,7 +161,7 @@ pub fn create_conversation(app: AppHandle) -> AtlasResult<Conversation> {
         model_id: settings_default_model(&app),
         created_at: now,
         updated_at: now,
-        settings: GenerationSettings::default(),
+        settings: generation_defaults,
     };
     let mut conversations = load_conversations(&app)?;
     conversations.push(conversation.clone());
