@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { parseThinkSegments } from "../lib/think";
 import type { ChatMessage } from "../types";
 import { Icon } from "./Icon";
 import { Markdown } from "./Markdown";
+import { ThinkBlock } from "./ThinkBlock";
 
 interface Props {
   message: ChatMessage;
@@ -10,9 +12,35 @@ interface Props {
   onRegenerate: () => void;
 }
 
+/** Renders message content, hiding reasoning behind a collapsible block. */
+export function AssistantContent({ text, streaming }: { text: string; streaming: boolean }) {
+  // Skip finished-but-empty think blocks (some models emit them); an empty
+  // block still renders while open, since that is the "Thinking…" state.
+  const segments = parseThinkSegments(text, streaming).filter(
+    (segment) => segment.kind === "text" || segment.content.trim() || !segment.closed,
+  );
+  return (
+    <>
+      {segments.map((segment, index) =>
+        segment.kind === "think" ? (
+          <ThinkBlock
+            key={index}
+            content={segment.content}
+            streaming={streaming && !segment.closed}
+          />
+        ) : (
+          <Markdown key={index}>{segment.content}</Markdown>
+        ),
+      )}
+      {streaming && !segments.every((segment) => segment.kind === "think") && (
+        <span className="stream-caret" />
+      )}
+    </>
+  );
+}
+
 export function MessageItem({ message, isLastAssistant, canRegenerate, onRegenerate }: Props) {
   const [copied, setCopied] = useState(false);
-  const isUser = message.role === "user";
 
   const copy = async () => {
     await navigator.clipboard.writeText(message.content);
@@ -20,35 +48,39 @@ export function MessageItem({ message, isLastAssistant, canRegenerate, onRegener
     window.setTimeout(() => setCopied(false), 1600);
   };
 
-  return (
-    <article className={`msg ${isUser ? "msg-user" : "msg-assistant"}`}>
-      <div className="msg-avatar">{isUser ? "You" : <Icon name="spark" size={15} />}</div>
-      <div className="msg-body">
-        <div className="msg-meta">
-          <span className="msg-role">{isUser ? "You" : "ATLAS"}</span>
-          {message.createdAt > 0 && (
-            <time>
-              {new Date(message.createdAt * 1000).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </time>
-          )}
+  if (message.role === "user") {
+    return (
+      <div className="row-user">
+        <div className="bubble-user">
+          <p>{message.content}</p>
         </div>
-        {isUser ? <p className="msg-text">{message.content}</p> : <Markdown>{message.content}</Markdown>}
-        <div className="msg-actions">
-          <button onClick={() => void copy()} title="Copy message">
+        <div className="row-user-actions">
+          <button onClick={() => void copy()} title="Copy message" aria-label="Copy message">
             <Icon name={copied ? "check" : "copy"} size={13} />
-            {copied ? "Copied" : "Copy"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="row-assistant">
+      <div className="assistant-avatar">
+        <Icon name="spark" size={14} />
+      </div>
+      <div className="assistant-body">
+        <AssistantContent text={message.content} streaming={false} />
+        <div className="assistant-actions">
+          <button onClick={() => void copy()} title="Copy response" aria-label="Copy response">
+            <Icon name={copied ? "check" : "copy"} size={14} />
           </button>
           {isLastAssistant && canRegenerate && (
-            <button onClick={onRegenerate} title="Regenerate response">
-              <Icon name="refresh" size={13} />
-              Retry
+            <button onClick={onRegenerate} title="Regenerate response" aria-label="Regenerate response">
+              <Icon name="refresh" size={14} />
             </button>
           )}
         </div>
       </div>
-    </article>
+    </div>
   );
 }

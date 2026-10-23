@@ -50,8 +50,8 @@ export interface Toast {
 export const DEFAULT_SETTINGS: GenerationSettings = {
   temperature: 0.7,
   topP: 0.9,
-  maxTokens: 512,
-  contextSize: 4096,
+  maxTokens: 2048,
+  contextSize: 8192,
   systemPrompt:
     "You are ATLAS, a helpful private AI assistant running entirely on the user's device. Answer directly, clearly, and concisely.",
 };

@@ -3,8 +3,7 @@ import type { Conversation, GenerationSettings, LocalModel } from "../types";
 import { ChatSettings } from "./ChatSettings";
 import { Composer } from "./Composer";
 import { Icon } from "./Icon";
-import { Markdown } from "./Markdown";
-import { MessageItem } from "./MessageItem";
+import { AssistantContent, MessageItem } from "./MessageItem";
 
 interface Props {
   conversation: Conversation | null;
@@ -21,9 +20,10 @@ interface Props {
 }
 
 const SUGGESTIONS = [
-  { title: "Plan a project", prompt: "Help me plan a small software project from idea to first release." },
-  { title: "Explain simply", prompt: "Explain how a large language model works, in plain language." },
-  { title: "Write and improve", prompt: "Help me write a short, friendly project README introduction." },
+  { title: "Plan a project", detail: "from idea to first release", prompt: "Help me plan a small software project from idea to first release." },
+  { title: "Explain simply", detail: "any complex topic", prompt: "Explain how a large language model works, in plain language." },
+  { title: "Write something", detail: "drafts, READMEs, emails", prompt: "Help me write a short, friendly project README introduction." },
+  { title: "Brainstorm", detail: "names, ideas, approaches", prompt: "Brainstorm five creative names for a local-first notes app." },
 ];
 
 export function ChatView({
@@ -45,7 +45,10 @@ export function ChatView({
   const nearBottom = useRef(true);
 
   const selectedModelId =
-    conversation?.modelId ?? (models.some((m) => m.id === defaultModelId) ? defaultModelId : null) ?? models[0]?.id ?? null;
+    conversation?.modelId ??
+    (models.some((m) => m.id === defaultModelId) ? defaultModelId : null) ??
+    models[0]?.id ??
+    null;
   const isEmpty = !conversation || conversation.messages.length === 0;
 
   // Reset scroll position and close popovers before paint on chat switch.
@@ -53,9 +56,7 @@ export function ChatView({
     setSettingsOpen(false);
     nearBottom.current = true;
     const element = scrollRef.current;
-    if (element) {
-      element.scrollTop = element.scrollHeight;
-    }
+    if (element) element.scrollTop = element.scrollHeight;
   }, [conversation?.id]);
 
   useEffect(() => {
@@ -133,12 +134,12 @@ export function ChatView({
             <div className="chat-hero">
               <Icon name="spark" size={26} />
             </div>
-            <h1>How can I help?</h1>
-            <p>Private, local AI. Your chats and models never leave this device.</p>
-            <div className="suggestions">
+            <h1>What can I help with?</h1>
+            <div className="suggestion-grid">
               {SUGGESTIONS.map((suggestion) => (
                 <button key={suggestion.title} onClick={() => setDraft(suggestion.prompt)}>
-                  {suggestion.title}
+                  <strong>{suggestion.title}</strong>
+                  <span>{suggestion.detail}</span>
                 </button>
               ))}
             </div>
@@ -164,26 +165,20 @@ export function ChatView({
               />
             ))}
             {streaming && (
-              <article className="msg msg-assistant">
-                <div className="msg-avatar">
-                  <Icon name="spark" size={15} />
+              <div className="row-assistant">
+                <div className="assistant-avatar">
+                  <Icon name="spark" size={14} />
                 </div>
-                <div className="msg-body">
-                  <div className="msg-meta">
-                    <span className="msg-role">ATLAS</span>
-                  </div>
+                <div className="assistant-body">
                   {streamingText ? (
-                    <>
-                      <Markdown>{streamingText}</Markdown>
-                      <span className="stream-caret" />
-                    </>
+                    <AssistantContent text={streamingText} streaming />
                   ) : (
                     <p className="msg-thinking">
-                      Loading model<span className="dots" />
+                      Working<span className="dots" />
                     </p>
                   )}
                 </div>
-              </article>
+              </div>
             )}
           </div>
         )}

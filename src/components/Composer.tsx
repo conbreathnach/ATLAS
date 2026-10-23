@@ -17,7 +17,7 @@ export function Composer({ value, onChange, onSubmit, onStop, streaming, disable
     const textarea = textareaRef.current;
     if (!textarea) return;
     textarea.style.height = "auto";
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 220)}px`;
   }, [value]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -28,31 +28,36 @@ export function Composer({ value, onChange, onSubmit, onStop, streaming, disable
   };
 
   return (
-    <div className="composer">
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onKeyDown={onKeyDown}
-        placeholder="Message ATLAS…"
-        rows={1}
-        aria-label="Message ATLAS"
-      />
-      {streaming ? (
-        <button className="composer-btn composer-stop" onClick={onStop} aria-label="Stop generating">
-          <Icon name="stop" size={14} />
-        </button>
-      ) : (
-        <button
-          className="composer-btn composer-send"
-          onClick={onSubmit}
-          disabled={disabled || !value.trim()}
-          aria-label="Send message"
-        >
-          <Icon name="send" size={15} />
-        </button>
-      )}
-      <span className="composer-hint">Enter to send · Shift+Enter for a new line · fully local</span>
+    <div className="composer-wrap">
+      <div className="composer">
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={onKeyDown}
+          placeholder="Message ATLAS"
+          rows={1}
+          aria-label="Message ATLAS"
+        />
+        <div className="composer-side">
+          {streaming ? (
+            <button className="composer-btn stop" onClick={onStop} aria-label="Stop generating" title="Stop">
+              <Icon name="stop" size={13} />
+            </button>
+          ) : (
+            <button
+              className="composer-btn send"
+              onClick={onSubmit}
+              disabled={disabled || !value.trim()}
+              aria-label="Send message"
+              title="Send"
+            >
+              <Icon name="send" size={15} />
+            </button>
+          )}
+        </div>
+      </div>
+      <p className="composer-hint">ATLAS runs entirely on this device and can make mistakes — check important information.</p>
     </div>
   );
 }

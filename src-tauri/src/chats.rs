@@ -46,10 +46,12 @@ fn default_top_p() -> f32 {
     0.9
 }
 fn default_max_tokens() -> usize {
-    512
+    // Generous default: reasoning models spend tokens inside <think> blocks
+    // before any visible answer is produced.
+    2048
 }
 fn default_context_size() -> u32 {
-    4096
+    8192
 }
 fn default_system_prompt() -> String {
     DEFAULT_SYSTEM_PROMPT.to_string()
