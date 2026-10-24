@@ -59,7 +59,7 @@ export const DEFAULT_SETTINGS: GenerationSettings = {
   maxTokens: 2048,
   contextSize: 8192,
   systemPrompt:
-    "You are ATLAS, a helpful private AI assistant running entirely on the user's device. Answer directly, clearly, and concisely.",
+    "You are ATLAS, a helpful AI assistant running locally on the user's device. Answer directly, clearly, and concisely.",
 };
 
 export function isDesktopApp(): boolean {

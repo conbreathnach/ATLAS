@@ -1,6 +1,6 @@
 # ATLAS
 
-A private, local-first AI desktop app for Windows. ATLAS runs open-weight models entirely on your machine — no accounts, no cloud, no separate server process. One installer, one app.
+A desktop app for chatting with open-weight AI models on your own machine. One installer, no accounts, no subscriptions, no server setup — download a model and start talking to it. Fast, always available (even offline), and everything stays yours.
 
 ![stack](https://img.shields.io/badge/stack-Tauri%202%20%C2%B7%20React%2019%20%C2%B7%20llama.cpp-c8f759)
 
@@ -107,7 +107,7 @@ conversations.json chat history
 settings.json      theme, defaults
 ```
 
-Delete the folder to fully reset ATLAS. Nothing is ever uploaded anywhere.
+Delete the folder to fully reset ATLAS.
 
 ---
 

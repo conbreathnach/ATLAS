@@ -12,7 +12,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 
-pub const DEFAULT_SYSTEM_PROMPT: &str = "You are ATLAS, a helpful private AI assistant running entirely on the user's device. Answer directly, clearly, and concisely.";
+pub const DEFAULT_SYSTEM_PROMPT: &str = "You are ATLAS, a helpful AI assistant running locally on the user's device. Answer directly, clearly, and concisely.";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

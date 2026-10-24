@@ -134,7 +134,7 @@ export function Sidebar({
         <div>
           <strong>Local workspace</strong>
           <small>
-            {modelCount === 0 ? "No models" : `${modelCount} model${modelCount === 1 ? "" : "s"}`} · fully private
+            {modelCount === 0 ? "No models" : `${modelCount} model${modelCount === 1 ? "" : "s"}`} · on this device
           </small>
         </div>
       </footer>

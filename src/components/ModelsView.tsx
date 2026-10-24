@@ -65,7 +65,7 @@ export function ModelsView({
             <Icon name="models" size={22} />
           </div>
           <h2>Your library is empty</h2>
-          <p>Import a GGUF model file (for example from Hugging Face) to start chatting offline.</p>
+          <p>Import a GGUF model file (for example from Hugging Face) to start chatting.</p>
           <button className="btn-primary" onClick={onImport} disabled={importing}>
             <Icon name="plus" size={15} />
             {importing ? "Importing…" : "Add your first model"}

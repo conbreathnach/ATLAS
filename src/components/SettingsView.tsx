@@ -176,7 +176,7 @@ export function SettingsView({ settings, models, onUpdate, onClearChats }: Props
 
       <div className="settings-section">
         <h2>Data</h2>
-        <p className="settings-hint">Everything lives in the ATLAS folder on this device. Nothing is uploaded.</p>
+        <p className="settings-hint">Your chats and models are stored in the ATLAS folder on this device.</p>
         <button
           className="btn-danger"
           onClick={() => {
