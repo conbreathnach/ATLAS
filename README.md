@@ -15,7 +15,6 @@ Grab the installer from [**Releases**](../../releases/latest):
 | Platform | File | Notes |
 |---|---|---|
 | **Windows** | `…_x64-setup.exe` | Available now. SmartScreen may prompt for unsigned apps: **More info → Run anyway** |
-| **macOS / Linux** | planned | Not yet available — watch Releases for future builds |
 
 Then launch ATLAS. There is nothing else to install: no Ollama, no Docker, no Python, no server.
 
