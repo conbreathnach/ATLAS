@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import logoUrl from "../assets/logo.png";
 import type { Conversation, GenerationSettings, LocalModel } from "../types";
 import { ChatSettings } from "./ChatSettings";
 import { Composer } from "./Composer";
@@ -131,9 +132,7 @@ export function ChatView({
       >
         {isEmpty ? (
           <div className="chat-empty">
-            <div className="chat-hero">
-              <Icon name="spark" size={26} />
-            </div>
+            <img className="chat-hero" src={logoUrl} alt="ATLAS logo" />
             <h1>What can I help with?</h1>
             <div className="suggestion-grid">
               {SUGGESTIONS.map((suggestion) => (
@@ -166,9 +165,7 @@ export function ChatView({
             ))}
             {streaming && (
               <div className="row-assistant">
-                <div className="assistant-avatar">
-                  <Icon name="spark" size={14} />
-                </div>
+                <img className="assistant-avatar" src={logoUrl} alt="" />
                 <div className="assistant-body">
                   {streamingText ? (
                     <AssistantContent text={streamingText} streaming />

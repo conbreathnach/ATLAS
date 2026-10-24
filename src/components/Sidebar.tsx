@@ -1,4 +1,5 @@
 import { useState } from "react";
+import logoUrl from "../assets/logo.png";
 import { groupByDate } from "../lib/format";
 import type { Conversation, View } from "../types";
 import { Icon } from "./Icon";
@@ -40,9 +41,7 @@ export function Sidebar({
   return (
     <aside className="sidebar">
       <div className="brand">
-        <span className="brand-mark">
-          <Icon name="spark" size={15} />
-        </span>
+        <img className="brand-mark" src={logoUrl} alt="ATLAS logo" />
         <span className="brand-name">ATLAS</span>
       </div>
 

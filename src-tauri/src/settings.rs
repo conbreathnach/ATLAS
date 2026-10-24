@@ -16,7 +16,7 @@ fn default_theme() -> String {
 }
 
 fn default_accent() -> String {
-    "lime".to_string()
+    "blue".to_string()
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

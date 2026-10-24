@@ -17,10 +17,11 @@
   --text: #edeee7;
   --text-2: #a9ada1;
   --text-3: #787d70;
-  --accent: #c8f759;
-  --accent-hover: #d6ff70;
-  --accent-ink: #1c240d;
-  --accent-dim: rgba(200, 247, 89, 0.11);
+  --accent: #7ab8ff;
+  --accent-hover: #94c6ff;
+  --accent-ink: #0d1b2c;
+  --accent-dim: rgba(122, 184, 255, 0.13);
+  --accent-border: rgba(122, 184, 255, 0.3);
   --danger: #e8999a;
   --danger-bg: rgba(232, 153, 154, 0.1);
   --radius: 12px;
@@ -94,58 +95,68 @@ mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; 
   --text: #1d1f19;
   --text-2: #5a5f53;
   --text-3: #878c7d;
-  --accent-dim: rgba(122, 156, 20, 0.12);
+  --accent: #1f6fe0;
+  --accent-hover: #1a63c8;
+  --accent-ink: #ffffff;
+  --accent-dim: rgba(31, 111, 224, 0.12);
+  --accent-border: rgba(31, 111, 224, 0.32);
   color-scheme: light;
 }
 
-/* Light theme uses a deeper lime for readable contrast on white. */
+/* Light theme uses deeper accent shades for readable contrast on white. */
+:root[data-accent="lime"] {
+  --accent: #c8f759;
+  --accent-hover: #d6ff70;
+  --accent-ink: #1c240d;
+  --accent-dim: rgba(200, 247, 89, 0.11);
+  --accent-border: rgba(200, 247, 89, 0.28);
+}
 :root[data-theme="light"][data-accent="lime"] {
   --accent: #6f9a12;
   --accent-hover: #5e8510;
   --accent-ink: #ffffff;
   --accent-dim: rgba(111, 154, 18, 0.13);
+  --accent-border: rgba(111, 154, 18, 0.35);
 }
 :root[data-accent="blue"] {
   --accent: #7ab8ff;
   --accent-hover: #94c6ff;
   --accent-ink: #0d1b2c;
   --accent-dim: rgba(122, 184, 255, 0.13);
+  --accent-border: rgba(122, 184, 255, 0.3);
 }
 :root[data-accent="violet"] {
   --accent: #c9a7ff;
   --accent-hover: #d7bcff;
   --accent-ink: #1e1230;
   --accent-dim: rgba(201, 167, 255, 0.13);
+  --accent-border: rgba(201, 167, 255, 0.3);
 }
 :root[data-accent="amber"] {
   --accent: #ffcf6e;
   --accent-hover: #ffda8f;
   --accent-ink: #2b1e06;
   --accent-dim: rgba(255, 207, 110, 0.14);
-}
-:root[data-theme="light"][data-accent="blue"] {
-  --accent: #1f6fe0;
-  --accent-hover: #1a63c8;
-  --accent-ink: #ffffff;
-  --accent-dim: rgba(31, 111, 224, 0.12);
+  --accent-border: rgba(255, 207, 110, 0.3);
 }
 :root[data-theme="light"][data-accent="violet"] {
   --accent: #7c3aed;
   --accent-hover: #6d31d8;
   --accent-ink: #ffffff;
   --accent-dim: rgba(124, 58, 237, 0.11);
+  --accent-border: rgba(124, 58, 237, 0.3);
 }
 :root[data-theme="light"][data-accent="amber"] {
   --accent: #b45309;
   --accent-hover: #9a4708;
   --accent-ink: #ffffff;
   --accent-dim: rgba(180, 83, 9, 0.12);
+  --accent-border: rgba(180, 83, 9, 0.32);
 }
 
 /* Light-theme adjustments where dark-only choices were baked in. */
 :root[data-theme="light"] .code-block { background: #1d1e1a; }
-:root[data-theme="light"] .new-chat kbd,
-:root[data-theme="light"] .brand-mark { border-color: rgba(111, 154, 18, 0.3); }
+:root[data-theme="light"] .new-chat kbd { border-color: var(--border-strong); }
 :root[data-theme="light"] .composer { box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08); }
 :root[data-theme="light"] .toast { box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18); }
 :root[data-theme="light"] .chat-settings { box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18); }
@@ -171,12 +182,9 @@ mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; 
 
 .brand { display: flex; align-items: center; gap: 10px; padding: 4px 10px 16px; }
 .brand-mark {
-  display: grid; place-items: center;
+  display: block;
   width: 30px; height: 30px;
-  color: var(--accent);
-  background: var(--accent-dim);
-  border: 1px solid rgba(200, 247, 89, 0.22);
-  border-radius: 9px;
+  border-radius: 8px;
 }
 .brand-name { font-size: 15px; font-weight: 800; letter-spacing: 0.14em; }
 
@@ -322,9 +330,9 @@ mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; 
 .model-empty-cta {
   padding: 7px 15px; font-size: 13px; font-weight: 600;
   color: var(--accent); background: var(--accent-dim);
-  border: 1px dashed rgba(200, 247, 89, 0.35); border-radius: 99px;
+  border: 1px dashed var(--accent-border); border-radius: 99px;
 }
-.model-empty-cta:hover { background: rgba(200, 247, 89, 0.17); }
+.model-empty-cta:hover { background: var(--accent-dim); }
 .model-empty-cta.large { margin-top: 24px; padding: 12px 20px; border-radius: 99px; }
 
 .local-badge {
@@ -369,10 +377,10 @@ mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; 
   text-align: center;
 }
 .chat-hero {
-  display: grid; place-items: center;
-  width: 54px; height: 54px; margin-bottom: 22px;
-  color: var(--accent); background: var(--accent-dim);
-  border: 1px solid rgba(200, 247, 89, 0.2); border-radius: 16px;
+  display: block;
+  width: 64px; height: 64px; margin-bottom: 22px;
+  border-radius: 16px;
+  box-shadow: 0 10px 36px rgba(93, 117, 242, 0.35);
 }
 .chat-empty h1 { font-size: 28px; font-weight: 800; margin-bottom: 30px; }
 .suggestion-grid {
@@ -384,7 +392,7 @@ mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; 
   background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 14px;
   transition: all 0.14s ease;
 }
-.suggestion-grid button:hover { border-color: rgba(200, 247, 89, 0.35); transform: translateY(-1px); }
+.suggestion-grid button:hover { border-color: var(--accent-border); transform: translateY(-1px); }
 .suggestion-grid strong { font-size: 13.5px; font-weight: 700; }
 .suggestion-grid span { font-size: 12px; color: var(--text-3); }
 
@@ -415,12 +423,9 @@ mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; 
 
 .row-assistant { display: flex; gap: 13px; }
 .assistant-avatar {
-  display: grid; place-items: center;
+  display: block;
   width: 30px; height: 30px; flex: 0 0 30px; margin-top: 2px;
-  color: var(--accent);
-  background: var(--accent-dim);
-  border: 1px solid rgba(200, 247, 89, 0.22);
-  border-radius: 50%;
+  border-radius: 8px;
 }
 .assistant-body { flex: 1; min-width: 0; padding-top: 3px; }
 .assistant-actions { display: flex; gap: 3px; margin-top: 8px; opacity: 0; transition: opacity 0.15s ease; }
@@ -487,7 +492,7 @@ mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; 
 .markdown li::marker { color: var(--text-3); }
 .markdown blockquote {
   margin: 0 0 12px; padding: 3px 15px;
-  color: var(--text-2); border-left: 3px solid rgba(200, 247, 89, 0.35);
+  color: var(--text-2); border-left: 3px solid var(--accent-border);
 }
 .markdown a { color: var(--accent); text-decoration: none; }
 .markdown a:hover { text-decoration: underline; }
@@ -656,7 +661,7 @@ mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; 
   background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 13px;
   transition: border-color 0.13s ease;
 }
-.search-result:hover { border-color: rgba(200, 247, 89, 0.32); }
+.search-result:hover { border-color: var(--accent-border); }
 .search-result strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
 .search-result p {
   font-size: 12px; color: var(--text-2);

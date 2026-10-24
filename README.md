@@ -1,8 +1,12 @@
 # ATLAS
 
+<p align="center">
+  <img src="app-icon.png" alt="ATLAS logo" width="128" />
+</p>
+
 A desktop app for chatting with open-weight AI models on your own machine. One installer, no accounts, no subscriptions, no server setup — download a model and start talking to it. Fast, always available (even offline), and everything stays yours.
 
-![stack](https://img.shields.io/badge/stack-Tauri%202%20%C2%B7%20React%2019%20%C2%B7%20llama.cpp-c8f759)
+![stack](https://img.shields.io/badge/stack-Tauri%202%20%C2%B7%20React%2019%20%C2%B7%20llama.cpp-7b6cf6)
 
 ---
 

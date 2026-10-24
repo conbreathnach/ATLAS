@@ -1,4 +1,5 @@
 import { useState } from "react";
+import logoUrl from "../assets/logo.png";
 import { parseThinkSegments } from "../lib/think";
 import type { ChatMessage } from "../types";
 import { Icon } from "./Icon";
@@ -65,9 +66,7 @@ export function MessageItem({ message, isLastAssistant, canRegenerate, onRegener
 
   return (
     <div className="row-assistant">
-      <div className="assistant-avatar">
-        <Icon name="spark" size={14} />
-      </div>
+      <img className="assistant-avatar" src={logoUrl} alt="" />
       <div className="assistant-body">
         <AssistantContent text={message.content} streaming={false} />
         <div className="assistant-actions">
