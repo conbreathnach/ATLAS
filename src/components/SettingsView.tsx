@@ -175,6 +175,32 @@ export function SettingsView({ settings, models, onUpdate, onClearChats }: Props
       </div>
 
       <div className="settings-section">
+        <h2>Performance</h2>
+        <p className="settings-hint">
+          Hardware used to run models. Applies to the next message you send.
+        </p>
+
+        <div className="toggle-row">
+          <div className="toggle-label">
+            <strong>GPU acceleration</strong>
+            <small>
+              Use your graphics card (Vulkan) for faster responses. If no compatible GPU is found,
+              ATLAS automatically runs on the CPU.
+            </small>
+          </div>
+          <button
+            className={`switch ${settings.useGpu ? "on" : ""}`}
+            role="switch"
+            aria-checked={settings.useGpu}
+            aria-label="GPU acceleration"
+            onClick={() => onUpdate({ ...settings, useGpu: !settings.useGpu })}
+          >
+            <span className="switch-thumb" />
+          </button>
+        </div>
+      </div>
+
+      <div className="settings-section">
         <h2>Data</h2>
         <p className="settings-hint">Your chats and models are stored in the ATLAS folder on this device.</p>
         <button

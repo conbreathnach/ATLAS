@@ -733,6 +733,30 @@ mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; 
 .accent-swatch:hover { transform: scale(1.1); }
 .accent-swatch.active { border-color: var(--text); box-shadow: 0 0 0 3px var(--bg-app), 0 0 0 5px var(--accent); }
 
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  padding: 13px 16px;
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px;
+}
+.toggle-label { display: grid; gap: 2px; }
+.toggle-label strong { font-size: 13.5px; }
+.toggle-label small { font-size: 11.5px; color: var(--text-3); line-height: 1.45; }
+.switch {
+  position: relative; flex: 0 0 auto;
+  width: 42px; height: 24px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-strong); border-radius: 99px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.switch-thumb {
+  position: absolute; top: 2px; left: 2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--text-2);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.switch.on { background: var(--accent); border-color: var(--accent); }
+.switch.on .switch-thumb { transform: translateX(18px); background: var(--accent-ink); }
+
 /* ============ Toasts ============ */
 
 .toast-stack {

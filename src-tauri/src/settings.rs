@@ -28,6 +28,9 @@ pub struct AppSettings {
     pub theme: String,
     #[serde(default = "default_accent")]
     pub accent: String,
+    /// Offload model layers to the GPU (Vulkan) instead of running on CPU.
+    #[serde(default)]
+    pub use_gpu: bool,
     /// App-wide generation defaults applied to newly created conversations.
     #[serde(default)]
     pub default_generation: GenerationSettings,
@@ -39,6 +42,7 @@ impl Default for AppSettings {
             default_model_id: None,
             theme: default_theme(),
             accent: default_accent(),
+            use_gpu: false,
             default_generation: GenerationSettings::default(),
         }
     }

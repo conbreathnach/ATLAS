@@ -38,6 +38,7 @@ export interface AppSettings {
   defaultModelId: string | null;
   theme: Theme;
   accent: Accent;
+  useGpu: boolean;
   defaultGeneration: GenerationSettings;
 }
 

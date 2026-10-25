@@ -7,7 +7,7 @@
 use crate::{
     chats::{ChatMessage, GenerationSettings},
     error::{AtlasError, AtlasResult},
-    models,
+    models, settings as app_settings,
 };
 use llama_cpp_2::{
     context::params::LlamaContextParams,
@@ -40,6 +40,7 @@ pub struct TokenPayload {
 struct CachedModel {
     path: PathBuf,
     model: LlamaModel,
+    gpu: bool,
 }
 
 /// Shared engine state. `active_request` is only held briefly to claim or
@@ -215,6 +216,10 @@ fn generate(
     let _claim = GenerationClaim::acquire(&state, request_id)?;
     let cancel = state.cancel.clone();
 
+    let use_gpu = app_settings::load_settings(app)
+        .map(|settings| settings.use_gpu)
+        .unwrap_or(false);
+
     // Hold the cache lock for the whole generation so the loaded model cannot
     // be swapped out mid-request, and so generations stay single-flight.
     let mut cache = state
@@ -223,16 +228,39 @@ fn generate(
         .map_err(|_| AtlasError::new("The model cache is unavailable."))?;
     let needs_load = cache
         .as_ref()
-        .is_none_or(|cached| cached.path != model_path);
+        .is_none_or(|cached| cached.path != model_path || cached.gpu != use_gpu);
     if needs_load {
-        let model =
-            LlamaModel::load_from_file(&state.backend, &model_path, &LlamaModelParams::default())
-                .map_err(|error| {
-                AtlasError::context("Could not load the selected GGUF model", error)
-            })?;
+        // GPU offload is fixed at model load, so a toggle change means a reload.
+        let load = |gpu: bool| {
+            let layers = if gpu { 999 } else { 0 };
+            LlamaModel::load_from_file(
+                &state.backend,
+                &model_path,
+                &LlamaModelParams::default().with_n_gpu_layers(layers),
+            )
+        };
+        let (model, gpu) = match use_gpu {
+            // A missing/too-small GPU must not block chatting: retry on CPU.
+            true => match load(true) {
+                Ok(model) => (model, true),
+                Err(_) => (
+                    load(false).map_err(|error| {
+                        AtlasError::context("Could not load the selected GGUF model", error)
+                    })?,
+                    false,
+                ),
+            },
+            false => (
+                load(false).map_err(|error| {
+                    AtlasError::context("Could not load the selected GGUF model", error)
+                })?,
+                false,
+            ),
+        };
         *cache = Some(CachedModel {
             path: model_path,
             model,
+            gpu,
         });
     }
     if cancel.load(Ordering::Relaxed) {
